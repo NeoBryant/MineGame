@@ -43,10 +43,11 @@ public:
 	int touch(const int x, const int y); 
 	bool mark(const int x, const int y); //mark a block as a mine
 	void setMines(); //set mines on the map
-
+	void blocksExtension(const int x, const int y); //if the block touched is empty then extend
 	//appear the map
 	void print();
 	void tag(); //like a tag in Java
+	bool result(); //the result of the mine game gg or go on or winner
 
 private:	
 	Block **m_map; //the map
@@ -88,13 +89,15 @@ Map::~Map() {
 	delete []m_map;
 	m_map = NULL;
 }
-
+//-1->gg 0->invalid touch 1->valid touch
 int Map::touch(const int x, const int y) {
+
 	if (m_map[x-1][y-1].isAppeared || m_map[x-1][y-1].isMarked) {
-		isGG = true;
+		isGG = 0;
 		return 0;
 	} else {
 		if (m_map[x-1][y-1].isMine) { 
+			isGG = 1;
 			return -1;
 		} else {
 			m_map[x-1][y-1].isAppeared = true;
@@ -103,6 +106,10 @@ int Map::touch(const int x, const int y) {
 	}
 	// a important function 
 	//.....
+	
+	if (m_map[x-1][y-1].numOfAroundMines == 0) {
+		blocksExtension(x-1, y-1);
+	}
 
 	return 1;
 }
@@ -131,7 +138,7 @@ void Map::setMines() {
 	//get (Number) index of mines which are totally different
 	srand((unsigned)time(NULL));
 	for (int count = 0; count < m_mines; ) {
-		int num = random(m_size*m_size/2)+random(m_size*m_size/2);
+		int num = random(m_size*m_size/4)+random(m_size*m_size/2)+random(m_size*m_size/4);
 		isExisted = false;
 
 		//check if num has existed
@@ -158,29 +165,44 @@ void Map::setMines() {
 	//mark the block with the number of mines around them
 	if (m_map[0][1].isMine) ++m_map[0][0].numOfAroundMines;
 	if (m_map[1][0].isMine) ++m_map[0][0].numOfAroundMines;
+	if (m_map[1][1].isMine) ++m_map[0][0].numOfAroundMines;
 
 	if (m_map[0][m_size-2].isMine) ++m_map[0][m_size-1].numOfAroundMines;
 	if (m_map[1][m_size-1].isMine) ++m_map[0][m_size-1].numOfAroundMines;
+	if (m_map[1][m_size-2].isMine) ++m_map[0][m_size-1].numOfAroundMines;
 
 	if (m_map[m_size-2][0].isMine) ++m_map[m_size-1][0].numOfAroundMines;
 	if (m_map[m_size-1][1].isMine) ++m_map[m_size-1][0].numOfAroundMines;
+	if (m_map[m_size-2][1].isMine) ++m_map[m_size-1][0].numOfAroundMines;
 
 	if (m_map[m_size-2][m_size-1].isMine) ++m_map[m_size-1][m_size-1].numOfAroundMines;
 	if (m_map[m_size-1][m_size-2].isMine) ++m_map[m_size-1][m_size-1].numOfAroundMines;
-
+	if (m_map[m_size-2][m_size-2].isMine) ++m_map[m_size-1][m_size-1].numOfAroundMines;
 
 	for (int i = 1; i < m_size-1; ++i) {
 		if (m_map[0][i-1].isMine) ++m_map[0][i].numOfAroundMines;
 		if (m_map[0][i+1].isMine) ++m_map[0][i].numOfAroundMines;
+		if (m_map[1][i-1].isMine) ++m_map[0][i].numOfAroundMines;
+		if (m_map[1][i+1].isMine) ++m_map[0][i].numOfAroundMines;
+		if (m_map[1][i].isMine) ++m_map[0][i].numOfAroundMines;
 
 		if (m_map[m_size-1][i-1].isMine) ++m_map[m_size-1][i].numOfAroundMines;
 		if (m_map[m_size-1][i+1].isMine) ++m_map[m_size-1][i].numOfAroundMines;
+		if (m_map[m_size-2][i-1].isMine) ++m_map[m_size-1][i].numOfAroundMines;
+		if (m_map[m_size-2][i+1].isMine) ++m_map[m_size-1][i].numOfAroundMines;
+		if (m_map[m_size-2][i].isMine) ++m_map[m_size-1][i].numOfAroundMines;
 
 		if (m_map[i-1][0].isMine) ++m_map[i][0].numOfAroundMines;	
-		if (m_map[i+1][0].isMine) ++m_map[i][0].numOfAroundMines;	
+		if (m_map[i+1][0].isMine) ++m_map[i][0].numOfAroundMines;
+		if (m_map[i-1][1].isMine) ++m_map[i][0].numOfAroundMines;	
+		if (m_map[i+1][1].isMine) ++m_map[i][0].numOfAroundMines;
+		if (m_map[i][1].isMine) ++m_map[i][0].numOfAroundMines;
 
 		if (m_map[i-1][m_size-1].isMine) ++m_map[i][m_size-1].numOfAroundMines;	
-		if (m_map[i+1][m_size-1].isMine) ++m_map[i][m_size-1].numOfAroundMines;		
+		if (m_map[i+1][m_size-1].isMine) ++m_map[i][m_size-1].numOfAroundMines;	
+		if (m_map[i-1][m_size-2].isMine) ++m_map[i][m_size-1].numOfAroundMines;
+		if (m_map[i+1][m_size-2].isMine) ++m_map[i][m_size-1].numOfAroundMines;
+		if (m_map[i][m_size-2].isMine) ++m_map[i][m_size-1].numOfAroundMines;	
 	}
 
 	for (int x = 1; x < m_size-1; ++x) {
@@ -200,6 +222,87 @@ void Map::setMines() {
 	delete []randomNumber;
 	randomNumber = NULL;
 }
+
+//using recursion
+void Map::blocksExtension(const int x, const int y) {
+	
+	if (-1 < x < m_size && -1 < y < m_size) {
+		m_map[x][y].isAppeared = true;
+		if (-1 < x-1 &&  x-1 < m_size && -1 < y-1 && y-1 < m_size) {
+			if ( !m_map[x-1][y-1].isAppeared ) {
+				m_map[x-1][y-1].isAppeared = true;
+				if ( m_map[x-1][y-1].numOfAroundMines == 0) {
+					blocksExtension(x-1, y-1);
+				} 
+			}
+	    }	
+
+		if (-1 < x-1 &&  x-1 < m_size && -1 < y && y < m_size) {
+			if ( !m_map[x-1][y].isAppeared ) {
+				m_map[x-1][y].isAppeared = true;
+				if ( m_map[x-1][y].numOfAroundMines == 0) {
+					blocksExtension(x-1, y);
+				} 
+			}
+	    }
+
+		if (-1 < x-1 &&  x-1 < m_size && -1 < y+1 && y < m_size) {
+			if ( !m_map[x-1][y+1].isAppeared ) {
+				m_map[x-1][y+1].isAppeared = true;
+				if ( m_map[x-1][y+1].numOfAroundMines == 0) {
+					blocksExtension(x-1, y+1);
+				} 
+			}
+	    }
+	
+		if (-1 < x &&  x < m_size && -1 < y+1 && y+1 < m_size) {
+			if ( !m_map[x][y+1].isAppeared ) {
+				m_map[x][y+1].isAppeared = true;
+				if ( m_map[x][y+1].numOfAroundMines == 0) {
+					blocksExtension(x, y+1);
+				} 
+			}
+	    }
+	
+		if (-1 < x+1 &&  x+1 < m_size && -1 < y+1 && y+1 < m_size) {
+			if ( !m_map[x+1][y+1].isAppeared ) {
+				m_map[x+1][y+1].isAppeared = true;
+				if ( m_map[x+1][y+1].numOfAroundMines == 0) {
+					blocksExtension(x+1, y+1);
+				} 
+			}
+	    }
+
+		if (-1 < x+1 &&  x+1 < m_size && -1 < y && y < m_size) {
+			if ( !m_map[x+1][y].isAppeared ) {
+				m_map[x+1][y].isAppeared = true;
+				if ( m_map[x+1][y].numOfAroundMines == 0) {
+					blocksExtension(x+1, y);
+				} 
+			}
+	    }
+
+		if (-1 < x+1 &&  x+1 < m_size && -1 < y-1 && y-1 < m_size) {
+			if ( !m_map[x+1][y-1].isAppeared ) {
+				m_map[x+1][y-1].isAppeared = true;
+				if ( m_map[x+1][y-1].numOfAroundMines == 0) {
+					blocksExtension(x+1, y-1);
+				} 
+			}
+	    }
+
+		if (-1 < x &&  x < m_size && -1 < y-1 && y-1 < m_size) {
+			if ( !m_map[x][y-1].isAppeared ) {
+				m_map[x][y-1].isAppeared = true;
+				if ( m_map[x][y-1].numOfAroundMines == 0) {
+					blocksExtension(x, y-1);
+				} 
+			}
+	    }													
+	}
+}
+
+
 
 //+->block @->mine $->mark !->touch mine
 void Map::print() {
@@ -232,6 +335,9 @@ void Map::print() {
 				if (m_map[i][j].isMine) {
 					cout << "@ ";
 				}
+				else {
+					cout << "  ";
+				}
 			}
 			cout << "|\n";
 		}
@@ -241,16 +347,49 @@ void Map::print() {
 	cout << "\n";
 }
 void Map::tag() {
-	cout << "--------------------------------\n"
-		 << "|          Mine Game           \n"
-		 << "| Marked: " << m_marked << "  "
-		 << isGG ? ":)" : ":(" ;
-	cout << "  "
-		 << "Step: " << m_step << "\n"
+	cout << "---------------------------------\n"
+		 << "|          Mine Game" <<"\t\t| \n"
+		 << "| Marked: " << m_marked << "   "
+		 << (isGG ? ":(" : ":)") ;
+	cout << "   "
+		 << "Step: " << m_step << "\t|\n"
 		 << "---------------------------------\n\n" << endl;
 }
 
+bool Map::result() {
+	return isGG;
+}
+/* test appearing
+void Map::print() {
+
+	tag();
+		cout << "\t  ";
+		for (int i = 0; i < m_size; ++i) cout << i+1 << " ";
+		cout << "\n\t ";	
+		for (int i = 0; i < m_size+1; ++i) cout << "- ";	
+		cout << "\n";
+		
+		for (int i = 0; i < m_size; ++i) {
+			cout << "\t" << i+1 << "|";
+			for (int j = 0; j < m_size; ++j) {
 
 
+				if (m_map[i][j].isMine) {
+					cout << "@ ";
+				} else if (m_map[i][j].isAppeared) {
+					if (m_map[i][j].numOfAroundMines == 0) cout << "  ";
+					else cout << m_map[i][j].numOfAroundMines << " ";
+				} else {
+					cout << "+ ";
+				}
+			}
+			cout << "|\n";
+		}
+
+	cout << "\t ";
+	for (int i = 0; i < m_size+1; ++i) cout << "- ";
+	cout << "\n";
+}
+*/
 
 #endif

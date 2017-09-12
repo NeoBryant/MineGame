@@ -14,8 +14,20 @@ int main() {
 	
 	Map map(MIN_SIZE, MINES);
 	map.print();
+	char ope;
+	int x, y;
+	while (!map.result()) {
+		cout << "Please input the operation and the coordinate of block\n"
+			 << "eg: (t 1 3 or m 3 9)\n"
+			 << "-> ";
+		cin >> ope >> x >> y;
+		if (ope == 't') {
+			map.touch(x, y);
+		} else if (ope == 'm') {
+			map.mark(x, y);
+		}	
+		map.print();
+	}
 
-	map.mark(3,3);
-	map.print();
 	return 0;
 }
